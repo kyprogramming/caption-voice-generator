@@ -8,7 +8,7 @@ import shutil
 import assemblyai as aai
 import requests
 from typing import Dict
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
@@ -940,8 +940,13 @@ async def reset_server():
 
 
 @app.api_route("/", methods=["GET", "HEAD"])
-async def serve_frontend():
+async def serve_frontend(request: Request):
+    # HEAD is sent by Render health checks, load balancers, and browsers.
+    # Return 200 for HEAD without a body; serve index.html for GET.
+    from fastapi.responses import Response as _Response
     index_path = os.path.join("frontend", "index.html")
+    if request.method == "HEAD":
+        return _Response(status_code=200)
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"error": "index.html not found."}
@@ -1065,5 +1070,6 @@ async def download_tts(filename: str, background_tasks: BackgroundTasks):
 # -----------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Server starting on http://0.0.0.0:8000")
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    _port = int(os.getenv("PORT", 8000))
+    logger.info(f"Server starting on http://0.0.0.0:{_port}")
+    uvicorn.run(app, host="0.0.0.0", port=_port, reload=True)

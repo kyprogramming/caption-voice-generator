@@ -6,8 +6,6 @@ services:
   plan: starter
 
   # ── Force Python 3.12 ────────────────────────────────────────────────
-  # Render defaults to the latest Python (3.14 as of 2025) which breaks
-  # several packages. Pin to 3.12 which is stable and fully compatible.
   pythonVersion: "3.12"
 
   # ── Build ────────────────────────────────────────────────────────────
@@ -25,7 +23,7 @@ services:
     pip install -r requirements.txt
 
   # ── Start ────────────────────────────────────────────────────────────
-  startCommand: uvicorn main:app --host 0.0.0.0 --port 10000 --workers 2 --timeout-keep-alive 120
+  startCommand: uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000} --workers 2 --timeout-keep-alive 120
 
   # ── Runtime environment variables ────────────────────────────────────
   envVars:

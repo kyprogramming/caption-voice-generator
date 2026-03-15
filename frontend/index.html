@@ -1275,9 +1275,8 @@
                     Microsoft Neural · Free
                 </span>
             </h2>
-            <p>Natural neural voices for Hindi &amp; English — using Microsoft Edge TTS. Automatically falls back to
-                Google TTS if Microsoft is unavailable.</p>
         </div>
+
         <!-- Language + Gender filter pills -->
         <div class="filter-row">
             <div class="filter-group">
@@ -1539,8 +1538,12 @@
     </div><!-- /.panel-storage -->
 
     <script>
-        const BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-            ? 'http://127.0.0.1:8000' : `http://${location.hostname}:8000`;
+        // BASE URL detection:
+        // - localhost → http://127.0.0.1:8000  (local dev, uvicorn on port 8000)
+        // - Render/prod → same origin, no port  (Render reverse-proxy handles routing)
+        //   Uses window.location.origin so http/https and port are always correct.
+        const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const BASE = IS_LOCAL ? 'http://127.0.0.1:8000' : '';
 
         function switchTab(name, btn) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
