@@ -1366,9 +1366,9 @@
             <div class="ctrl-block">
                 <div class="ctrl-header">
                     <span class="ctrl-lbl">🔊 Volume</span>
-                    <span class="ctrl-val" id="volVal">+50%</span>
+                    <span class="ctrl-val" id="volVal">+75%</span>
                 </div>
-                <input type="range" id="volSlider" min="-50" max="100" step="5" value="50"
+                <input type="range" id="volSlider" min="-50" max="100" step="5" value="75"
                     oninput="updateCtrl('volSlider','volVal', v => (v>=0?'+':'')+v+'%')">
                 <div class="ctrl-ticks"><span>Quieter</span><span>Normal</span><span>Louder</span></div>
             </div>
@@ -1407,9 +1407,9 @@
                             <div class="fx-row">
                                 <div class="fx-row-header">
                                     <span class="fx-lbl">Delay</span>
-                                    <span class="fx-val" id="echoDelayVal">500 ms</span>
+                                    <span class="fx-val" id="echoDelayVal">150 ms</span>
                                 </div>
-                                <input type="range" id="echoDelay" min="50" max="2000" step="50" value="500"
+                                <input type="range" id="echoDelay" min="50" max="2000" step="50" value="150"
                                     oninput="document.getElementById('echoDelayVal').textContent=this.value+' ms'">
                                 <div class="fx-ticks"><span>50ms Short</span><span>1000ms</span><span>2000ms Long</span>
                                 </div>
@@ -1417,18 +1417,18 @@
                             <div class="fx-row">
                                 <div class="fx-row-header">
                                     <span class="fx-lbl">Decay</span>
-                                    <span class="fx-val" id="echoDecayVal">0.40</span>
+                                    <span class="fx-val" id="echoDecayVal">0.10</span>
                                 </div>
-                                <input type="range" id="echoDecay" min="0.1" max="0.9" step="0.05" value="0.4"
+                                <input type="range" id="echoDecay" min="0.1" max="0.9" step="0.05" value="0.1"
                                     oninput="document.getElementById('echoDecayVal').textContent=parseFloat(this.value).toFixed(2)">
                                 <div class="fx-ticks"><span>0.1 Faint</span><span>0.5</span><span>0.9 Loud</span></div>
                             </div>
                             <div class="fx-row">
                                 <div class="fx-row-header">
                                     <span class="fx-lbl">Repeats</span>
-                                    <span class="fx-val" id="echoTapsVal">1×</span>
+                                    <span class="fx-val" id="echoTapsVal">2×</span>
                                 </div>
-                                <input type="range" id="echoTaps" min="1" max="4" step="1" value="1"
+                                <input type="range" id="echoTaps" min="1" max="4" step="1" value="2"
                                     oninput="document.getElementById('echoTapsVal').textContent=this.value+'×'">
                                 <div class="fx-ticks"><span>1 Single</span><span>2</span><span>3</span><span>4
                                         Multi</span></div>
