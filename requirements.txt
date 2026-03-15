@@ -13,7 +13,8 @@ ffmpeg-python==0.2.0
 # Transcription
 # Pinned to 0.26.0 — newer versions changed the Settings model
 # which breaks aai.settings.api_key on Python 3.12+
-assemblyai==0.26.0
+# assemblyai SDK removed — using REST API directly (no version conflicts)
+# requests library (already listed below) handles all HTTP calls
 requests==2.32.3
 
 # Primary TTS — Microsoft Edge Neural voices

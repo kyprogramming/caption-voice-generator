@@ -5,7 +5,7 @@ import logging
 import asyncio
 import ffmpeg
 import shutil
-import assemblyai as aai
+# assemblyai SDK removed — using direct REST API (no SDK version issues)
 import requests
 from typing import Dict
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Request
@@ -66,11 +66,10 @@ executor = ThreadPoolExecutor(max_workers=2)
 # -----------------------------------------------------
 # AssemblyAI Configuration
 # -----------------------------------------------------
-# Store the key in a plain variable.
-# We pass it directly to the Transcriber — never touch
-# aai.settings.api_key which changed across SDK versions.
+# Using direct REST API — no SDK, no version conflicts.
 _AAI_KEY = os.getenv("ASSEMBLYAI_API_KEY", "")
-logger.info("Using AssemblyAI for transcription (Hindi mode).")
+_AAI_BASE = "https://api.assemblyai.com/v2"
+logger.info("Using AssemblyAI REST API for transcription.")
 
 # =====================================================
 # edge_tts Voice catalogue
@@ -604,69 +603,87 @@ def burn_subtitles(
 # -----------------------------------------------------
 def transcribe_with_assemblyai(audio_path: str):
     """
+    Transcribe audio using AssemblyAI REST API directly.
+    No SDK — works on any Python version, no Settings conflicts.
     Returns tuple: (srt_text: str, words: list[dict])
     words = [{"text": "hello", "start": 120, "end": 540}, ...]
-    start/end are in milliseconds.
     """
-    import json as _json
+    import time as _time
+    headers = {
+        "authorization": _AAI_KEY,
+        "content-type":  "application/json",
+    }
+
     try:
-        logger.info("Starting AssemblyAI transcription...")
-        # SpeechModel.best was introduced in newer SDK versions.
-        # Fall back gracefully if the attribute doesn't exist.
-        try:
-            _speech_model = aai.SpeechModel.best
-        except AttributeError:
-            try:
-                _speech_model = aai.SpeechModel.universal
-            except AttributeError:
-                _speech_model = None
+        logger.info("AssemblyAI: uploading audio...")
 
-        _cfg_kwargs = {"language_code": "hi"}
-        if _speech_model is not None:
-            _cfg_kwargs["speech_model"] = _speech_model
+        # Step 1 — upload file
+        with open(audio_path, "rb") as f:
+            upload_resp = requests.post(
+                f"{_AAI_BASE}/upload",
+                headers={"authorization": _AAI_KEY,
+                         "content-type": "application/octet-stream"},
+                data=f,
+                timeout=120,
+            )
+        upload_resp.raise_for_status()
+        upload_url = upload_resp.json()["upload_url"]
+        logger.info(f"AssemblyAI: uploaded → {upload_url}")
 
-        config = aai.TranscriptionConfig(**_cfg_kwargs)
+        # Step 2 — submit transcription job
+        payload = {
+            "audio_url":    upload_url,
+            "language_code": "hi",
+            "speech_model":  "best",
+            "word_boost":   [],
+        }
+        submit_resp = requests.post(
+            f"{_AAI_BASE}/transcript",
+            json=payload,
+            headers=headers,
+            timeout=30,
+        )
+        submit_resp.raise_for_status()
+        transcript_id = submit_resp.json()["id"]
+        logger.info(f"AssemblyAI: job submitted → {transcript_id}")
 
-        # Pass api_key directly — works on ALL SDK versions.
-        # Old SDK: Transcriber(api_key=...) sets it internally.
-        # New SDK: same signature, no aai.settings needed.
-        try:
-            transcriber = aai.Transcriber(config=config, api_key=_AAI_KEY)
-        except TypeError:
-            # Very old SDK versions don't accept api_key kwarg — fall back
-            aai.settings.api_key = _AAI_KEY  # noqa
-            transcriber = aai.Transcriber(config=config)
+        # Step 3 — poll until done
+        poll_url = f"{_AAI_BASE}/transcript/{transcript_id}"
+        while True:
+            poll_resp = requests.get(poll_url, headers=headers, timeout=30)
+            poll_resp.raise_for_status()
+            data   = poll_resp.json()
+            status = data.get("status")
+            if status == "completed":
+                break
+            elif status == "error":
+                raise RuntimeError(f"🔴Transcription failed: {data.get('error')}")
+            logger.info(f"AssemblyAI: status={status}, waiting...")
+            _time.sleep(5)
 
-        transcript  = transcriber.transcribe(audio_path)
-        if transcript.status == "error":
-            raise RuntimeError(f"🔴Transcription failed: {transcript.error}")
+        logger.info("AssemblyAI: transcription completed.")
 
-        # ── SRT export ──
-        try:
-            srt_text = transcript.export_subtitles_srt()
-        except AttributeError:
-            logger.warning("Falling back to REST API subtitles endpoint.")
-            url     = f"https://api.assemblyai.com/v2/transcripts/{transcript.id}/subtitles"
-            headers = {"authorization": _AAI_KEY}
-            r       = requests.get(url, headers=headers, params={"subtitle_format": "srt"})
-            r.raise_for_status()
-            srt_text = r.text
+        # Step 4 — fetch SRT subtitles
+        srt_resp = requests.get(
+            f"{_AAI_BASE}/transcript/{transcript_id}/srt",
+            headers={"authorization": _AAI_KEY},
+            timeout=30,
+        )
+        srt_resp.raise_for_status()
+        srt_text = srt_resp.text
 
-        # ── Word-level timestamps ──
+        # Step 5 — extract word-level timestamps
         words = []
-        if hasattr(transcript, "words") and transcript.words:
-            for w in transcript.words:
-                words.append({
-                    "text":  w.text,
-                    "start": w.start,   # milliseconds
-                    "end":   w.end,
-                })
-            logger.info(f"Got {len(words)} word timestamps from AssemblyAI.")
-        else:
-            logger.warning("No word timestamps available — karaoke will use even distribution.")
+        for w in data.get("words") or []:
+            words.append({
+                "text":  w.get("text", ""),
+                "start": w.get("start", 0),
+                "end":   w.get("end",   0),
+            })
+        logger.info(f"AssemblyAI: got {len(words)} word timestamps.")
 
-        logger.info("🟢AssemblyAI transcription completed successfully.")
         return srt_text, words
+
     except Exception as e:
         logger.exception("🔴AssemblyAI transcription failed.")
         raise
