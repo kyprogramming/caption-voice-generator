@@ -889,6 +889,244 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        /* ── Storage Panel ── */
+        .storage-header {
+            margin-bottom: 20px;
+        }
+
+        .storage-header h2 {
+            font-size: 1.1rem;
+            color: #0f766e;
+            font-weight: 800;
+        }
+
+        .storage-header p {
+            color: #64748b;
+            font-size: .88rem;
+            margin-top: 4px;
+        }
+
+        .storage-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media(max-width:560px) {
+            .storage-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .storage-card {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 18px;
+            background: #fafbfd;
+        }
+
+        .storage-card.videos-card {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .storage-card.audio-card {
+            border-color: #7c3aed;
+            background: #f5f3ff;
+        }
+
+        .storage-card.temp-card {
+            border-color: #0891b2;
+            background: #ecfeff;
+        }
+
+        .sc-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .sc-title {
+            font-size: .78rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .sc-count {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.1;
+            margin: 4px 0 2px;
+        }
+
+        .sc-size {
+            font-size: .82rem;
+            color: #64748b;
+        }
+
+        .sc-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-teal {
+            background: #0d9488;
+            color: #fff;
+        }
+
+        .btn-teal:hover:not(:disabled) {
+            background: #0f766e;
+        }
+
+        .btn-indigo {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .btn-indigo:hover:not(:disabled) {
+            background: #4f46e5;
+        }
+
+        .file-list-wrap {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .file-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f1f5f9;
+            border-bottom: 1.5px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .file-list-header span {
+            font-size: .88rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .file-list-body {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .file-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background .12s;
+        }
+
+        .file-row:last-child {
+            border-bottom: none;
+        }
+
+        .file-row:hover {
+            background: #f8fafc;
+        }
+
+        .file-row-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .file-row-name {
+            flex: 1;
+            font-family: monospace;
+            font-size: .78rem;
+            color: #334155;
+            word-break: break-all;
+        }
+
+        .file-row-size {
+            color: #94a3b8;
+            white-space: nowrap;
+            font-size: .76rem;
+            min-width: 54px;
+            text-align: right;
+        }
+
+        .file-row-del {
+            background: #fee2e2;
+            color: var(--red);
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .82rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background .12s;
+        }
+
+        .file-row-del:hover {
+            background: #fecaca;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: .88rem;
+        }
+
+        .total-bar {
+            background: #f0fdf4;
+            border: 1.5px solid #86efac;
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .total-bar span {
+            font-size: .9rem;
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .danger-zone {
+            border: 1.5px solid #fecaca;
+            border-radius: 10px;
+            padding: 16px 18px;
+            background: #fff5f5;
+            margin-top: 20px;
+        }
+
+        .danger-zone h4 {
+            color: var(--red);
+            font-size: .9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .danger-zone p {
+            font-size: .83rem;
+            color: #64748b;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 
@@ -902,6 +1140,7 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('caption',this)">🎞 Caption Generator</button>
         <button class="tab-btn" onclick="switchTab('tts',this)">🔊 Text to Voice</button>
+        <button class="tab-btn" onclick="switchTab('storage',this);loadStorageStats()">🗂 Storage</button>
     </div>
 
     <!-- ══════════════ CAPTION PANEL ══════════════ -->
@@ -1039,7 +1278,6 @@
             <p>Natural neural voices for Hindi &amp; English — using Microsoft Edge TTS. Automatically falls back to
                 Google TTS if Microsoft is unavailable.</p>
         </div>
-
         <!-- Language + Gender filter pills -->
         <div class="filter-row">
             <div class="filter-group">
@@ -1205,6 +1443,100 @@
         </div>
 
     </div>
+
+    <!-- ════════════════════════ STORAGE PANEL ════════════════════════ -->
+    <div id="panel-storage" class="panel">
+
+        <div class="storage-header">
+            <h2>🗂 Storage Manager</h2>
+            <p>View and clean up generated videos, voice files, and temporary uploads.</p>
+        </div>
+
+        <!-- Total bar -->
+        <div class="total-bar">
+            <span id="totalSizeLabel">📦 Total used: calculating…</span>
+            <button class="btn-ghost" style="font-size:.82rem" onclick="loadStorageStats()">🔄 Refresh</button>
+        </div>
+
+        <!-- Per-folder summary cards -->
+        <div class="storage-summary">
+            <div class="storage-card videos-card">
+                <div class="sc-icon">🎬</div>
+                <div class="sc-title">Videos</div>
+                <div class="sc-count" id="videoCount">—</div>
+                <div class="sc-size" id="videoSize">—</div>
+                <div class="sc-actions">
+                    <button class="btn-ghost" style="font-size:.78rem" onclick="toggleFileList('videos')">📋 View
+                        Files</button>
+                    <button class="btn-red" style="font-size:.78rem" onclick="deleteFolder('videos')">🗑 Delete
+                        All</button>
+                </div>
+            </div>
+            <div class="storage-card audio-card">
+                <div class="sc-icon">🔊</div>
+                <div class="sc-title">Voice Audio</div>
+                <div class="sc-count" id="audioCount">—</div>
+                <div class="sc-size" id="audioSize">—</div>
+                <div class="sc-actions">
+                    <button class="btn-ghost" style="font-size:.78rem" onclick="toggleFileList('audio')">📋 View
+                        Files</button>
+                    <button class="btn-red" style="font-size:.78rem" onclick="deleteFolder('audio')">🗑 Delete
+                        All</button>
+                </div>
+            </div>
+            <div class="storage-card temp-card">
+                <div class="sc-icon">📁</div>
+                <div class="sc-title">Temp Files</div>
+                <div class="sc-count" id="tempCount">—</div>
+                <div class="sc-size" id="tempSize">—</div>
+                <div class="sc-actions">
+                    <button class="btn-ghost" style="font-size:.78rem" onclick="toggleFileList('temp')">📋 View
+                        Files</button>
+                    <button class="btn-red" style="font-size:.78rem" onclick="deleteFolder('temp')">🗑 Delete
+                        All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- File lists (collapsible per folder) -->
+        <div id="fileListVideos" style="display:none">
+            <div class="file-list-wrap">
+                <div class="file-list-header" onclick="toggleFileList('videos')">
+                    <span>🎬 Video Files</span><span>▲</span>
+                </div>
+                <div class="file-list-body" id="fileRowsVideos"></div>
+            </div>
+        </div>
+
+        <div id="fileListAudio" style="display:none">
+            <div class="file-list-wrap">
+                <div class="file-list-header" onclick="toggleFileList('audio')">
+                    <span>🔊 Voice Audio Files</span><span>▲</span>
+                </div>
+                <div class="file-list-body" id="fileRowsAudio"></div>
+            </div>
+        </div>
+
+        <div id="fileListTemp" style="display:none">
+            <div class="file-list-wrap">
+                <div class="file-list-header" onclick="toggleFileList('temp')">
+                    <span>📁 Temp Files</span><span>▲</span>
+                </div>
+                <div class="file-list-body" id="fileRowsTemp"></div>
+            </div>
+        </div>
+
+        <div class="status-box" id="storageStatus"></div>
+
+        <!-- Danger zone -->
+        <div class="danger-zone">
+            <h4>⚠️ Danger Zone</h4>
+            <p>Deletes <strong>everything</strong> — all videos, voice audio, temp files, and in-memory session data.
+                This cannot be undone.</p>
+            <button class="btn-red" onclick="deleteAll()">🗑 Delete Everything</button>
+        </div>
+
+    </div><!-- /.panel-storage -->
 
     <script>
         const BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
@@ -1573,6 +1905,138 @@
         }
 
         renderVoiceGrid();
+
+        // ════════════════════════════════════════════════════════
+        // STORAGE MANAGER
+        // ════════════════════════════════════════════════════════
+
+        const storageSpin = makeStatus('storageStatus');
+
+        function fmtBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function fileIcon(name) {
+            const ext = name.split('.').pop().toLowerCase();
+            if (['mp4', 'avi', 'mov', 'mkv'].includes(ext)) return '🎬';
+            if (['mp3', 'wav', 'aac', 'ogg'].includes(ext)) return '🔊';
+            if (['srt', 'ass', 'json'].includes(ext)) return '📝';
+            return '📄';
+        }
+
+        async function loadStorageStats() {
+            try {
+                const res = await fetch(`${BASE}/storage/stats`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Failed to load stats');
+
+                // Update summary cards
+                document.getElementById('videoCount').textContent = data.videos.count + ' file' + (data.videos.count !== 1 ? 's' : '');
+                document.getElementById('videoSize').textContent = fmtBytes(data.videos.size_bytes);
+                document.getElementById('audioCount').textContent = data.audio.count + ' file' + (data.audio.count !== 1 ? 's' : '');
+                document.getElementById('audioSize').textContent = fmtBytes(data.audio.size_bytes);
+                document.getElementById('tempCount').textContent = data.temp.count + ' file' + (data.temp.count !== 1 ? 's' : '');
+                document.getElementById('tempSize').textContent = fmtBytes(data.temp.size_bytes);
+
+                // Total
+                document.getElementById('totalSizeLabel').textContent =
+                    `📦 Total used: ${fmtBytes(data.total_size_bytes)}  ` +
+                    `(${data.videos.count + data.audio.count + data.temp.count} files)`;
+
+                // Render file rows
+                renderFileRows('videos', data.videos.files);
+                renderFileRows('audio', data.audio.files);
+                renderFileRows('temp', data.temp.files);
+
+            } catch (err) {
+                document.getElementById('storageStatus').textContent = '❌ ' + err.message;
+            }
+        }
+
+        function renderFileRows(folder, files) {
+            const container = document.getElementById('fileRows' + folder.charAt(0).toUpperCase() + folder.slice(1));
+            if (!container) return;
+            if (!files || files.length === 0) {
+                container.innerHTML = '<div class="empty-state">No files in this folder</div>';
+                return;
+            }
+            container.innerHTML = files.map(f => `
+        <div class="file-row" id="filerow-${folder}-${btoa(f.name).replace(/=/g, '')}">
+            <span class="file-row-icon">${fileIcon(f.name)}</span>
+            <span class="file-row-name">${f.name}</span>
+            <span class="file-row-size">${fmtBytes(f.size)}</span>
+            <button class="file-row-del" title="Delete file"
+                    onclick="deleteSingleFile('${folder}','${f.name}')">✕</button>
+        </div>`).join('');
+        }
+
+        function toggleFileList(folder) {
+            const wrap = document.getElementById('fileList' + folder.charAt(0).toUpperCase() + folder.slice(1));
+            if (!wrap) return;
+            wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function deleteFolder(folder) {
+            const labels = { videos: 'all captioned videos', audio: 'all generated voice audio', temp: 'all temp/upload files' };
+            if (!confirm(`Delete ${labels[folder]}? This cannot be undone.`)) return;
+            storageSpin.start(`Deleting ${folder}…`);
+            try {
+                const res = await fetch(`${BASE}/storage/${folder}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail);
+                storageSpin.stop(`✅ ${data.message}`);
+                await loadStorageStats();
+                // Collapse the file list
+                const wrap = document.getElementById('fileList' + folder.charAt(0).toUpperCase() + folder.slice(1));
+                if (wrap) wrap.style.display = 'none';
+            } catch (err) {
+                storageSpin.stop('❌ ' + err.message, false);
+            }
+        }
+
+        async function deleteSingleFile(folder, filename) {
+            if (!confirm(`Delete "${filename}"?`)) return;
+            try {
+                const res = await fetch(`${BASE}/storage/file`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folder, filename }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail);
+                // Remove row from DOM immediately (no full reload)
+                const rowId = `filerow-${folder}-${btoa(filename).replace(/=/g, '')}`;
+                const row = document.getElementById(rowId);
+                if (row) row.remove();
+                // Reload stats to update counters
+                await loadStorageStats();
+                storageSpin.stop(`✅ Deleted: ${filename}`);
+            } catch (err) {
+                storageSpin.stop('❌ ' + err.message, false);
+            }
+        }
+
+        async function deleteAll() {
+            if (!confirm('⚠️ Delete EVERYTHING — all videos, audio, and temp files?\nThis cannot be undone.')) return;
+            storageSpin.start('Deleting all files…');
+            try {
+                const res = await fetch(`${BASE}/reset`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail);
+                storageSpin.stop(`✅ ${data.message}`);
+                await loadStorageStats();
+                // Collapse all lists
+                ['videos', 'audio', 'temp'].forEach(f => {
+                    const w = document.getElementById('fileList' + f.charAt(0).toUpperCase() + f.slice(1));
+                    if (w) w.style.display = 'none';
+                });
+            } catch (err) {
+                storageSpin.stop('❌ ' + err.message, false);
+            }
+        }
     </script>
 </body>
 

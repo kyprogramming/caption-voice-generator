@@ -792,20 +792,133 @@ async def serve_original(uid: str):
     )
 
 
+# =====================================================
+# Storage / Cleanup helpers
+# =====================================================
+
+def _folder_stats(folder_path: str) -> dict:
+    """Return file count and total size in bytes for a folder."""
+    total_size  = 0
+    total_files = 0
+    files       = []
+    if os.path.exists(folder_path):
+        for fn in os.listdir(folder_path):
+            fp = os.path.join(folder_path, fn)
+            if os.path.isfile(fp):
+                size = os.path.getsize(fp)
+                total_size  += size
+                total_files += 1
+                files.append({
+                    "name":     fn,
+                    "size":     size,
+                    "modified": int(os.path.getmtime(fp)),
+                })
+    files.sort(key=lambda x: x["modified"], reverse=True)
+    return {"count": total_files, "size_bytes": total_size, "files": files}
+
+
+def _delete_folder_contents(folder_path: str) -> int:
+    """Delete all files in a folder. Returns number of files deleted."""
+    deleted = 0
+    if os.path.exists(folder_path):
+        for fn in os.listdir(folder_path):
+            fp = os.path.join(folder_path, fn)
+            try:
+                if os.path.isfile(fp) or os.path.islink(fp):
+                    os.unlink(fp)
+                    deleted += 1
+                elif os.path.isdir(fp):
+                    shutil.rmtree(fp)
+                    deleted += 1
+            except Exception as e:
+                logger.error(f"Failed to delete {fp}: {e}")
+    return deleted
+
+
+# ── Storage stats endpoint ────────────────────────────────────
+
+@app.get("/storage/stats")
+async def storage_stats():
+    """
+    Return per-folder file counts, sizes, and file lists.
+    Used by the UI cleanup panel to show what is on disk.
+    """
+    videos_stats = _folder_stats(VIDEOS_DIR)
+    audio_stats  = _folder_stats(AUDIO_DIR)
+    temp_stats   = _folder_stats(TEMP_DIR)
+    total_bytes  = videos_stats["size_bytes"] + audio_stats["size_bytes"] + temp_stats["size_bytes"]
+    return {
+        "videos": videos_stats,
+        "audio":  audio_stats,
+        "temp":   temp_stats,
+        "total_size_bytes": total_bytes,
+    }
+
+
+# ── Selective delete endpoints ────────────────────────────────
+
+@app.delete("/storage/videos")
+async def delete_videos():
+    """Delete all files in the videos/ folder."""
+    n = _delete_folder_contents(VIDEOS_DIR)
+    # Also clear in-memory upload records whose output files are gone
+    to_remove = [uid for uid, info in uploads.items()
+                 if not os.path.exists(info.get("output_path", ""))]
+    for uid in to_remove:
+        del uploads[uid]
+    logger.info(f"🗑 Deleted {n} video file(s).")
+    return {"ok": True, "deleted": n, "message": f"Deleted {n} video file(s)."}
+
+
+@app.delete("/storage/audio")
+async def delete_audio():
+    """Delete all files in the audio/ folder (generated TTS)."""
+    n = _delete_folder_contents(AUDIO_DIR)
+    logger.info(f"🗑 Deleted {n} audio file(s).")
+    return {"ok": True, "deleted": n, "message": f"Deleted {n} audio file(s)."}
+
+
+@app.delete("/storage/temp")
+async def delete_temp():
+    """Delete all files in the temp/ folder (uploads, SRT, WAV)."""
+    n = _delete_folder_contents(TEMP_DIR)
+    uploads.clear()
+    logger.info(f"🗑 Deleted {n} temp file(s).")
+    return {"ok": True, "deleted": n, "message": f"Deleted {n} temp file(s)."}
+
+
+@app.delete("/storage/file")
+async def delete_single_file(payload: dict):
+    """
+    Delete a single file by folder + filename.
+    Body: { "folder": "videos"|"audio"|"temp", "filename": "xyz.mp4" }
+    """
+    folder_map = {"videos": VIDEOS_DIR, "audio": AUDIO_DIR, "temp": TEMP_DIR}
+    folder  = payload.get("folder", "")
+    fname   = payload.get("filename", "")
+    if folder not in folder_map:
+        raise HTTPException(status_code=400, detail=f"Invalid folder '{folder}'.")
+    if not fname or ".." in fname or "/" in fname or "\\" in fname:
+        raise HTTPException(status_code=400, detail="Invalid filename.")
+    fp = os.path.join(folder_map[folder], fname)
+    if not os.path.exists(fp):
+        raise HTTPException(status_code=404, detail="File not found.")
+    os.unlink(fp)
+    logger.info(f"🗑 Deleted single file: {fp}")
+    return {"ok": True, "message": f"Deleted {fname}"}
+
+
+# ── Full reset (keep for backward compat) ────────────────────
+
 @app.delete("/reset")
 async def reset_server():
-    for folder in ["videos", "temp", "audio"]:
-        if os.path.exists(folder):
-            for f in os.listdir(folder):
-                fp = os.path.join(folder, f)
-                try:
-                    if os.path.isfile(fp) or os.path.islink(fp): os.unlink(fp)
-                    elif os.path.isdir(fp): shutil.rmtree(fp)
-                except Exception as e:
-                    logger.error(f"Failed to delete {fp}: {e}")
+    """Delete ALL generated files across videos, audio and temp folders."""
+    total = 0
+    for folder in [VIDEOS_DIR, TEMP_DIR, AUDIO_DIR]:
+        total += _delete_folder_contents(folder)
     uploads.clear()
-    logger.info("✅ All files deleted successfully.")
-    return {"message": "✅ All files deleted successfully."}
+    logger.info(f"✅ Full reset — {total} files deleted.")
+    return {"message": f"✅ All files deleted successfully. ({total} files removed)"}
 
 
 @app.get("/")
