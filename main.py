@@ -939,7 +939,7 @@ async def reset_server():
     return {"message": f"✅ All files deleted successfully. ({total} files removed)"}
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def serve_frontend():
     index_path = os.path.join("frontend", "index.html")
     if os.path.exists(index_path):
@@ -956,7 +956,7 @@ async def download_video(filename: str, background_tasks: BackgroundTasks):
     return FileResponse(file_path, media_type="video/mp4", filename=filename)
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     return {"status": "ok"}
 
