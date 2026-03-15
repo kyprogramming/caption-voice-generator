@@ -1250,9 +1250,9 @@
                     <div class="style-item">
                         <label>⬇ Bottom Margin</label>
                         <div class="range-row">
-                            <input type="range" id="marginBottom" min="0" max="200" step="5" value="110"
+                            <input type="range" id="marginBottom" min="0" max="300" step="5" value="150"
                                 oninput="document.getElementById('marginBottomVal').textContent=this.value+'px'; updateStylePreview()">
-                            <span class="range-val" id="marginBottomVal">110px</span>
+                            <span class="range-val" id="marginBottomVal">150px</span>
                         </div>
                         <span style="font-size:.7rem;color:#94a3b8">Used when position is Bottom/Middle</span>
                     </div>
@@ -1741,7 +1741,7 @@
             preview.style.color = textColor;
             preview.style.backgroundColor = hexToRgba(bgColor, opacity);
             preview.style.fontWeight = bold ? '800' : '400';
-            preview.style.textShadow = `1px 1px 3px ${document.getElementById('outlineColor').value}`;
+            preview.style.textShadow = `2px 2px 5px ${document.getElementById('outlineColor').value}`;
             preview.style.padding = `${Math.min(marginV, 20)}px ${Math.min(marginR, 30)}px ${Math.min(marginV, 20)}px ${Math.min(marginL, 30)}px`;
             // Show karaoke highlight in preview using a gradient
             preview.innerHTML = `<span style="color:${textColor}">Sample </span>` +
@@ -1778,7 +1778,7 @@
             document.getElementById('captionPosition').value = p.position;
             document.getElementById('captionBold').checked = p.bold;
             document.getElementById('marginTop').value = p.marginTop || 30; document.getElementById('marginTopVal').textContent = (p.marginTop || 30) + 'px';
-            document.getElementById('marginBottom').value = p.marginBottom || 30; document.getElementById('marginBottomVal').textContent = (p.marginBottom || 30) + 'px';
+            document.getElementById('marginBottom').value = p.marginBottom || 150; document.getElementById('marginBottomVal').textContent = (p.marginBottom || 150) + 'px';
             document.getElementById('marginL').value = p.marginL || 30; document.getElementById('marginLVal').textContent = (p.marginL || 30) + 'px';
             document.getElementById('marginR').value = p.marginR || 30; document.getElementById('marginRVal').textContent = (p.marginR || 30) + 'px';
             updateStylePreview();
