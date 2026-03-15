@@ -1,0 +1,44 @@
+services:
+- type: web
+  name: my-auto-caption-app
+  env: python
+  region: oregon # Change to: frankfurt | singapore | ohio as needed
+  plan: starter # starter=free tier; upgrade to standard for more RAM/CPU
+
+  # ── Build ────────────────────────────────────────────────────────────
+  buildCommand: |
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ffmpeg \
+      fonts-noto-core \
+      fonts-noto-extra \
+      fonts-dejavu-core \
+      fonts-mukta \
+      fontconfig && \
+    fc-cache -fv && \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+  # ── Start ────────────────────────────────────────────────────────────
+  startCommand: uvicorn main:app --host 0.0.0.0 --port 10000 --workers 2 --timeout-keep-alive 120
+
+  # ── Runtime environment variables ────────────────────────────────────
+  envVars:
+  - key: ASSEMBLYAI_API_KEY
+    sync: false # set manually in Render dashboard → Environment
+
+  # Python / ffmpeg tuning
+  - key: PYTHONUNBUFFERED
+    value: "1"
+  - key: FONTCONFIG_PATH
+    value: /etc/fonts
+
+  # ── Health check ─────────────────────────────────────────────────────
+  healthCheckPath: /health
+  # ── Persistent disk (optional but recommended) ───────────────────────
+  # Keeps generated videos/audio across deploys.
+  # Remove this block if you are on the free tier (disk not supported).
+  # disk:
+  #   name: app-data
+  #   mountPath: /opt/render/project/src
+  #   sizeGB: 5

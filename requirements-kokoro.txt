@@ -1,0 +1,45 @@
+# =============================================================
+# requirements.txt — Caption & Voice Studio (Kokoro TTS)
+# =============================================================
+#
+# PRE-REQUISITE — install espeak-ng FIRST (needed for phonemes):
+#   Windows : download .msi from https://github.com/espeak-ng/espeak-ng/releases
+#             install it, then restart your terminal
+#   Mac     : brew install espeak
+#   Linux   : sudo apt install espeak-ng
+#
+# Then run:
+#   pip install -r requirements.txt
+#
+# Verify:
+#   python -c "from kokoro import KPipeline; print('Kokoro OK')"
+#
+# Run:
+#   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+# =============================================================
+
+# Web framework
+fastapi==0.111.0
+uvicorn==0.30.1
+python-multipart==0.0.9
+
+# Video / audio processing
+ffmpeg-python==0.2.0
+
+# Transcription
+assemblyai==0.26.0
+requests==2.32.3
+
+# TTS — Kokoro 82M neural model
+# No PyTorch version conflicts, works on Python 3.13
+# Fully offline after first model download (~80 MB)
+# Supports: US/British English + Hindi, male & female voices
+kokoro>=0.9.4
+soundfile
+misaki[en]
+
+# Hindi phoneme support for Kokoro
+misaki[hi]
+
+# Env vars
+python-dotenv==1.0.1

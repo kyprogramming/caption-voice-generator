@@ -1,0 +1,68 @@
+# =============================================================
+# requirements.txt — Caption & Voice Studio (Coqui TTS)
+# =============================================================
+#
+# ⚠️  REQUIRES PYTHON 3.12 — will NOT work on Python 3.13+
+#
+# ─────────────────────────────────────────────────────────────
+# FULL INSTALL — run these commands IN THIS EXACT ORDER:
+# ─────────────────────────────────────────────────────────────
+#
+# STEP 1 — Create venv with Python 3.12:
+#   Windows : py -3.12 -m venv venv
+#   Mac/Linux: python3.12 -m venv venv
+#
+# STEP 2 — Activate venv:
+#   Windows : venv\Scripts\activate
+#   Mac/Linux: source venv/bin/activate
+#
+# STEP 3 — Upgrade pip:
+#   python -m pip install --upgrade pip
+#
+# STEP 4 — Install PyTorch FIRST (~1 GB, wait for full completion):
+#   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+#
+# STEP 5 — Install coqui-tts:
+#   pip install coqui-tts==0.27.5
+#
+# STEP 6 — Force-pin transformers AFTER coqui-tts (critical step):
+#   pip install "transformers==4.46.3" "tokenizers==0.20.3" "huggingface-hub==0.26.5" --force-reinstall
+#
+# STEP 7 — Install this file:
+#   pip install -r requirements.txt
+#
+# STEP 8 — Verify everything works:
+#   python -c "from TTS.api import TTS; print('✅ Coqui TTS OK')"
+#
+# STEP 9 — Run the app:
+#   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+#
+# ─────────────────────────────────────────────────────────────
+# NOTE: coqui-tts and torch are installed manually above
+#       (steps 4-5) because install order matters.
+#       Do NOT add them here or pip will re-upgrade transformers.
+# =============================================================
+
+# Web framework
+fastapi==0.111.0
+uvicorn==0.30.1
+python-multipart==0.0.9
+
+# Video / audio processing
+ffmpeg-python==0.2.0
+
+# Transcription
+assemblyai==0.26.0
+requests==2.32.3
+
+# ⚠️  PINNED — must stay at these exact versions.
+# coqui-tts breaks with transformers >= 4.47 because
+# isin_mps_friendly and is_torch_greater_or_equal were
+# removed from transformers internal modules.
+# These 3 packages are tightly coupled — pin all together.
+transformers==4.46.3
+tokenizers==0.20.3
+huggingface-hub==0.26.5
+
+# Environment variables (.env file support)
+python-dotenv==1.0.1

@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Caption & Voice Studio</title>
+    <style>
+        :root {
+            --primary: #00589b;
+            --primary-dark: #004471;
+            --accent: #7c3aed;
+            --accent-dark: #5b21b6;
+            --green: #16a34a;
+            --orange: #f97316;
+            --red: #dc2626;
+            --bg: #f1f5fb;
+            --card: #ffffff;
+            --border: #dde3ee;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, .09);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 28px 16px 72px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .page-header p {
+            color: #64748b;
+            margin-top: 5px;
+            font-size: .93rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            max-width: 880px;
+            margin: 0 auto;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 10px 26px;
+            border: 2px solid transparent;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            background: #e2e8f4;
+            color: #64748b;
+            font-weight: 700;
+            font-size: .93rem;
+            cursor: pointer;
+            transition: all .15s;
+            position: relative;
+            top: 2px;
+        }
+
+        .tab-btn.active {
+            background: var(--card);
+            color: var(--primary);
+            border-color: var(--border);
+            border-bottom: 2px solid var(--card);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #cdd8ee;
+            color: var(--primary);
+        }
+
+        /* Panel */
+        .panel {
+            display: none;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius) var(--radius);
+            padding: 28px 26px 36px;
+            max-width: 880px;
+            margin: 0 auto;
+            box-shadow: var(--shadow);
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Buttons */
+        button {
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: .88rem;
+            transition: background .15s, transform .1s;
+        }
+
+        button:active {
+            transform: scale(.97);
+        }
+
+        button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-green {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .btn-green:hover:not(:disabled) {
+            background: #15803d;
+        }
+
+        .btn-orange {
+            background: var(--orange);
+            color: #fff;
+        }
+
+        .btn-orange:hover:not(:disabled) {
+            background: #ea6d10;
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: #fff;
+        }
+
+        .btn-red:hover:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-accent:hover:not(:disabled) {
+            background: var(--accent-dark);
+        }
+
+        .btn-ghost {
+            background: #eef2f9;
+            color: var(--primary);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: #dce5f0;
+        }
+
+        label.file-label {
+            display: inline-block;
+            background: #e6f0fb;
+            color: var(--primary);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px dashed var(--primary);
+            font-weight: 700;
+            font-size: .9rem;
+            transition: background .15s;
+        }
+
+        label.file-label:hover {
+            background: #cfe3f8;
+        }
+
+        .controls-row {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .status-box {
+            margin-top: 14px;
+            font-weight: 500;
+            color: #334155;
+            min-height: 22px;
+            font-size: .93rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 19px;
+            height: 19px;
+            border: 3px solid #cbd5e1;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .75s linear infinite;
+            margin-right: 7px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .srt-section h3 {
+            margin: 18px 0 7px;
+            font-size: .95rem;
+            color: #475569;
+        }
+
+        textarea {
+            width: 100%;
+            height: 190px;
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            font-family: 'Fira Mono', monospace;
+            font-size: .85rem;
+            resize: vertical;
+            background: #f8fafc;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        video {
+            margin-top: 18px;
+            width: 100%;
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        a.dl-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        a.dl-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ── TTS Panel ── */
+        .tts-header {
+            margin-bottom: 20px;
+        }
+
+        .tts-header h2 {
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .tts-header p {
+            color: #64748b;
+            font-size: .88rem;
+            margin-top: 4px;
+        }
+
+        .info-banner {
+            background: #f0fdf4;
+            border: 1.5px solid #86efac;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: .84rem;
+            color: #166534;
+            margin-bottom: 20px;
+            line-height: 1.55;
+        }
+
+        .warn-banner {
+            background: #fffbeb;
+            border: 1.5px solid #fde68a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: .84rem;
+            color: #92400e;
+            margin-bottom: 20px;
+            line-height: 1.55;
+        }
+
+        /* Filter pills */
+        .filter-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-size: .78rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .pill {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: #f1f5fb;
+            color: #475569;
+            font-weight: 600;
+            font-size: .83rem;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .pill.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .pill:hover:not(.active) {
+            background: #e2e8f5;
+            border-color: #b0bed4;
+        }
+
+        /* Voice cards */
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .voice-card {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all .15s;
+            background: #fafbfd;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .voice-card:hover {
+            border-color: #a5b4fc;
+            background: #f5f0ff;
+        }
+
+        .voice-card.active {
+            border-color: var(--accent);
+            background: #ede9fe;
+            box-shadow: 0 0 0 3px #c4b5fd44;
+        }
+
+        .vc-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .vc-avatar.female {
+            background: #fce7f3;
+        }
+
+        .vc-avatar.male {
+            background: #dbeafe;
+        }
+
+        .vc-name {
+            font-weight: 700;
+            font-size: .92rem;
+            color: #1e293b;
+        }
+
+        .vc-sub {
+            font-size: .76rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .no-voices {
+            color: #94a3b8;
+            font-size: .88rem;
+            grid-column: 1/-1;
+        }
+
+        /* Text input */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group>label {
+            font-size: .8rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .tts-textarea {
+            height: 120px !important;
+            font-family: Inter, sans-serif !important;
+            font-size: .92rem !important;
+        }
+
+        .char-count {
+            font-size: .78rem;
+            color: #94a3b8;
+            text-align: right;
+            margin-top: 3px;
+        }
+
+        .char-count.warn {
+            color: var(--orange);
+        }
+
+        .char-count.over {
+            color: var(--red);
+        }
+
+        /* Controls grid */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        @media (max-width: 600px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ctrl-block {}
+
+        .ctrl-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .ctrl-lbl {
+            font-size: .8rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .ctrl-val {
+            font-size: .9rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        .ctrl-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: .72rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .tts-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        /* Audio result */
+        .audio-result {
+            margin-top: 20px;
+            background: #f5f0ff;
+            border: 1.5px solid #c4b5fd;
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+
+        .audio-result h4 {
+            color: var(--accent);
+            font-size: .95rem;
+            margin-bottom: 10px;
+        }
+
+        audio {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .audio-dl-btn {
+            display: inline-block;
+            margin-top: 12px;
+            background: var(--accent);
+            color: #fff;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: .88rem;
+            text-decoration: none;
+            transition: background .15s;
+        }
+
+        .audio-dl-btn:hover {
+            background: var(--accent-dark);
+        }
+
+        /* ── Audio Effects Panel ── */
+        .fx-panel {
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-top: 16px;
+        }
+
+        .fx-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .fx-panel-header h3 {
+            font-size: .95rem;
+            color: var(--accent);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .fx-panel-header .toggle-icon {
+            font-size: 1rem;
+            color: #64748b;
+            transition: transform .2s;
+        }
+
+        .fx-panel-header.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .fx-panel-body {
+            margin-top: 16px;
+        }
+
+        .fx-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 560px) {
+            .fx-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fx-section {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .fx-section.active-fx {
+            border-color: var(--accent);
+            background: #faf5ff;
+        }
+
+        .fx-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .fx-section-title span {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .fx-toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .fx-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .fx-slider-track {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #cbd5e1;
+            border-radius: 22px;
+            transition: .25s;
+        }
+
+        .fx-slider-track::before {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: .25s;
+        }
+
+        .fx-toggle input:checked+.fx-slider-track {
+            background: var(--accent);
+        }
+
+        .fx-toggle input:checked+.fx-slider-track::before {
+            transform: translateX(18px);
+        }
+
+        .fx-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .fx-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .fx-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fx-lbl {
+            font-size: .78rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .fx-val {
+            font-size: .88rem;
+            font-weight: 800;
+            color: var(--accent);
+            min-width: 48px;
+            text-align: right;
+        }
+
+        .fx-row input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        .fx-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: .7rem;
+            color: #94a3b8;
+        }
+
+        .fx-disabled {
+            opacity: .4;
+            pointer-events: none;
+        }
+
+        /* ── Caption Style Panel ── */
+        .style-panel {
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-top: 18px;
+        }
+
+        .style-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .style-panel-header h3 {
+            font-size: .95rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .style-panel-header .toggle-icon {
+            font-size: 1rem;
+            color: #64748b;
+            transition: transform .2s;
+        }
+
+        .style-panel-header.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .style-panel-body {
+            margin-top: 16px;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .style-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .style-item label {
+            font-size: .78rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .style-item input[type="color"] {
+            width: 100%;
+            height: 36px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 2px 4px;
+            background: #fff;
+        }
+
+        .style-item select {
+            padding: 7px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: .88rem;
+            background: #fff;
+            width: 100%;
+            color: #1e293b;
+        }
+
+        .style-item select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .style-item input[type="number"] {
+            padding: 7px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: .88rem;
+            background: #fff;
+            width: 100%;
+        }
+
+        .style-item input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .style-item .range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .style-item .range-row input[type="range"] {
+            flex: 1;
+        }
+
+        .style-item .range-val {
+            font-size: .88rem;
+            font-weight: 800;
+            color: var(--primary);
+            min-width: 32px;
+            text-align: right;
+        }
+
+        /* Preview badge */
+        .caption-preview {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all .2s;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .toggle-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .toggle-row span {
+            font-size: .88rem;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .controls-row {
+                flex-direction: column;
+            }
+
+            .controls-row button {
+                width: 100%;
+            }
+
+            label.file-label {
+                display: block;
+                text-align: center;
+            }
+
+            .style-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page-header">
+        <h1>🎬 Caption &amp; Voice Studio</h1>
+        <p>Auto-caption videos · Generate neural AI voiceovers — Microsoft Edge TTS with gTTS fallback</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('caption',this)">🎞 Caption Generator</button>
+        <button class="tab-btn" onclick="switchTab('tts',this)">🔊 Text to Voice</button>
+    </div>
+
+    <!-- ══════════════ CAPTION PANEL ══════════════ -->
+    <div id="panel-caption" class="panel active">
+        <label class="file-label" for="videoInput">📁 Choose Video File</label>
+        <input id="videoInput" type="file" accept="video/*" style="display:none" />
+        <div class="controls-row">
+            <button id="uploadBtn" class="btn-primary">Upload &amp; Generate Captions</button>
+            <button id="saveSrtBtn" class="btn-green" disabled>Save SRT Edits</button>
+            <button id="burnBtn" class="btn-orange" disabled>Apply &amp; Generate Video</button>
+            <button id="resetBtn" class="btn-red">Reset</button>
+        </div>
+        <div class="status-box" id="captionStatus"></div>
+
+        <!-- ── Caption Style Panel ── -->
+        <div class="style-panel" id="stylePanel">
+            <div class="style-panel-header open" id="stylePanelHeader" onclick="toggleStylePanel()">
+                <h3>🎨 Caption Style</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="style-panel-body" id="stylePanelBody">
+                <div class="style-grid">
+
+                    <!-- Font Size -->
+                    <div class="style-item">
+                        <label>📏 Font Size</label>
+                        <div class="range-row">
+                            <input type="range" id="fontSizeSlider" min="24" max="100" step="2" value="56"
+                                oninput="updateStylePreview()">
+                            <span class="range-val" id="fontSizeVal">56px</span>
+                        </div>
+                    </div>
+
+                    <!-- Text Color -->
+                    <div class="style-item">
+                        <label>🎨 Text Color</label>
+                        <input type="color" id="textColor" value="#FFFFFF" oninput="updateStylePreview()">
+                    </div>
+
+                    <!-- Highlight Color -->
+                    <div class="style-item">
+                        <label>✨ Highlight Color</label>
+                        <input type="color" id="highlightColor" value="#FFFF00" oninput="updateStylePreview()">
+                        <span style="font-size:.72rem;color:#64748b;margin-top:2px">Word colour as spoken</span>
+                    </div>
+
+                    <!-- Outline Color -->
+                    <div class="style-item">
+                        <label>🖊 Outline Color</label>
+                        <input type="color" id="outlineColor" value="#000000" oninput="updateStylePreview()">
+                    </div>
+
+                    <!-- Background Color -->
+                    <div class="style-item">
+                        <label>🟦 BG Color</label>
+                        <input type="color" id="bgColor" value="#000000" oninput="updateStylePreview()">
+                    </div>
+
+                    <!-- Background Opacity -->
+                    <div class="style-item">
+                        <label>💧 BG Opacity</label>
+                        <div class="range-row">
+                            <input type="range" id="bgAlpha" min="0" max="255" step="5" value="100"
+                                oninput="updateStylePreview()">
+                            <span class="range-val" id="bgAlphaVal">61%</span>
+                        </div>
+                    </div>
+
+                    <!-- Position -->
+                    <div class="style-item">
+                        <label>📍 Position</label>
+                        <select id="captionPosition" onchange="updateStylePreview()">
+                            <option value="bottom_center" selected>⬇ Bottom Center</option>
+                            <option value="bottom_left">↙ Bottom Left</option>
+                            <option value="bottom_right">↘ Bottom Right</option>
+                            <option value="middle_center">⊙ Middle Center</option>
+                            <option value="middle_left">← Middle Left</option>
+                            <option value="middle_right">→ Middle Right</option>
+                            <option value="top_center">⬆ Top Center</option>
+                            <option value="top_left">↖ Top Left</option>
+                            <option value="top_right">↗ Top Right</option>
+                        </select>
+                    </div>
+
+                    <!-- Bold -->
+                    <div class="style-item">
+                        <label>B Bold Text</label>
+                        <div class="toggle-row">
+                            <input type="checkbox" id="captionBold" checked onchange="updateStylePreview()">
+                            <span>Enable bold</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Live preview -->
+                <div class="caption-preview" id="captionPreview">
+                    Sample Caption Text — नमस्ते दुनिया
+                </div>
+
+                <!-- Preset buttons -->
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:12px">
+                    <button class="btn-ghost" style="font-size:.82rem" onclick="applyPreset('default')">⬜
+                        Default</button>
+                    <button class="btn-ghost" style="font-size:.82rem" onclick="applyPreset('yellow')">🟡 Yellow
+                        Bold</button>
+                    <button class="btn-ghost" style="font-size:.82rem" onclick="applyPreset('white_box')">📦 White
+                        Box</button>
+                    <button class="btn-ghost" style="font-size:.82rem" onclick="applyPreset('red')">🔴 Red
+                        Impact</button>
+                    <button class="btn-ghost" style="font-size:.82rem" onclick="applyPreset('top')">⬆ Top
+                        Overlay</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="srtAreaWrapper" class="srt-section" style="display:none">
+            <h3>✏️ Edit SRT</h3>
+            <textarea id="srtText" spellcheck="false"></textarea>
+        </div>
+        <h3 style="margin-top:18px;font-size:.95rem;color:#475569">🎥 Preview</h3>
+        <video id="outputVideo" controls style="display:none"></video>
+    </div>
+
+    <!-- ══════════════ TTS PANEL ══════════════ -->
+    <div id="panel-tts" class="panel">
+
+        <div class="tts-header">
+            <h2>🔊 Text to Voice
+                <span
+                    style="font-size:.72rem;font-weight:600;background:#ede9fe;color:var(--accent);padding:2px 8px;border-radius:5px;vertical-align:middle;margin-left:6px">
+                    Microsoft Neural · Free
+                </span>
+            </h2>
+            <p>Natural neural voices for Hindi &amp; English — using Microsoft Edge TTS. Automatically falls back to
+                Google TTS if Microsoft is unavailable.</p>
+        </div>
+
+        <!-- Language + Gender filter pills -->
+        <div class="filter-row">
+            <div class="filter-group">
+                <span class="filter-label">🌐 Language</span>
+                <button class="pill active" data-filter="lang" data-value="hi"
+                    onclick="setFilter('lang','hi',this)">🇮🇳 Hindi</button>
+                <button class="pill" data-filter="lang" data-value="en" onclick="setFilter('lang','en',this)">🇬🇧
+                    English</button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">👤 Gender</span>
+                <button class="pill active" data-filter="gender" data-value="Female"
+                    onclick="setFilter('gender','Female',this)">👩 Female</button>
+                <button class="pill" data-filter="gender" data-value="Male" onclick="setFilter('gender','Male',this)">👨
+                    Male</button>
+            </div>
+        </div>
+
+        <!-- Voice cards -->
+        <div class="voice-grid" id="voiceGrid"></div>
+
+        <!-- Text input -->
+        <div class="form-group">
+            <label>📝 Text to synthesize</label>
+            <textarea id="ttsText" class="tts-textarea"
+                placeholder="Hindi: एक छोटे से गाँव में अर्जुन नाम का एक लड़का रहता था…&#10;&#10;English: Once upon a time in a small village, there lived a boy named Arjun…">
+        </textarea>
+            <div class="char-count" id="charCount">0 / 5000</div>
+        </div>
+
+        <!-- Rate / Volume / Pitch controls -->
+        <div class="controls-grid">
+
+            <div class="ctrl-block">
+                <div class="ctrl-header">
+                    <span class="ctrl-lbl">⚡ Speed (Rate)</span>
+                    <span class="ctrl-val" id="rateVal">+0%</span>
+                </div>
+                <input type="range" id="rateSlider" min="-50" max="100" step="5" value="0"
+                    oninput="updateCtrl('rateSlider','rateVal', v => (v>=0?'+':'')+v+'%')">
+                <div class="ctrl-ticks"><span>Slower</span><span>Normal</span><span>Faster</span></div>
+            </div>
+
+            <div class="ctrl-block">
+                <div class="ctrl-header">
+                    <span class="ctrl-lbl">🔊 Volume</span>
+                    <span class="ctrl-val" id="volVal">+50%</span>
+                </div>
+                <input type="range" id="volSlider" min="-50" max="100" step="5" value="50"
+                    oninput="updateCtrl('volSlider','volVal', v => (v>=0?'+':'')+v+'%')">
+                <div class="ctrl-ticks"><span>Quieter</span><span>Normal</span><span>Louder</span></div>
+            </div>
+
+            <div class="ctrl-block">
+                <div class="ctrl-header">
+                    <span class="ctrl-lbl">🎵 Pitch</span>
+                    <span class="ctrl-val" id="pitchVal">+0Hz</span>
+                </div>
+                <input type="range" id="pitchSlider" min="-50" max="50" step="5" value="0"
+                    oninput="updateCtrl('pitchSlider','pitchVal', v => (v>=0?'+':'')+v+'Hz')">
+                <div class="ctrl-ticks"><span>Lower</span><span>Normal</span><span>Higher</span></div>
+            </div>
+
+        </div>
+
+        <!-- ── Audio Effects Panel ── -->
+        <div class="fx-panel" id="fxPanel">
+            <div class="fx-panel-header open" id="fxPanelHeader" onclick="toggleFxPanel()">
+                <h3>🎛 Audio Effects</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="fx-panel-body" id="fxPanelBody">
+                <div class="fx-grid">
+
+                    <!-- Echo -->
+                    <div class="fx-section" id="echoSection">
+                        <div class="fx-section-title">
+                            <label class="fx-toggle">
+                                <input type="checkbox" id="echoEnabled" onchange="toggleFxSection('echo')">
+                                <span class="fx-slider-track"></span>
+                            </label>
+                            <span>🔁 Echo</span>
+                        </div>
+                        <div id="echoControls" class="fx-disabled">
+                            <div class="fx-row">
+                                <div class="fx-row-header">
+                                    <span class="fx-lbl">Delay</span>
+                                    <span class="fx-val" id="echoDelayVal">500 ms</span>
+                                </div>
+                                <input type="range" id="echoDelay" min="50" max="2000" step="50" value="500"
+                                    oninput="document.getElementById('echoDelayVal').textContent=this.value+' ms'">
+                                <div class="fx-ticks"><span>50ms Short</span><span>1000ms</span><span>2000ms Long</span>
+                                </div>
+                            </div>
+                            <div class="fx-row">
+                                <div class="fx-row-header">
+                                    <span class="fx-lbl">Decay</span>
+                                    <span class="fx-val" id="echoDecayVal">0.40</span>
+                                </div>
+                                <input type="range" id="echoDecay" min="0.1" max="0.9" step="0.05" value="0.4"
+                                    oninput="document.getElementById('echoDecayVal').textContent=parseFloat(this.value).toFixed(2)">
+                                <div class="fx-ticks"><span>0.1 Faint</span><span>0.5</span><span>0.9 Loud</span></div>
+                            </div>
+                            <div class="fx-row">
+                                <div class="fx-row-header">
+                                    <span class="fx-lbl">Repeats</span>
+                                    <span class="fx-val" id="echoTapsVal">1×</span>
+                                </div>
+                                <input type="range" id="echoTaps" min="1" max="4" step="1" value="1"
+                                    oninput="document.getElementById('echoTapsVal').textContent=this.value+'×'">
+                                <div class="fx-ticks"><span>1 Single</span><span>2</span><span>3</span><span>4
+                                        Multi</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reverb -->
+                    <div class="fx-section" id="reverbSection">
+                        <div class="fx-section-title">
+                            <label class="fx-toggle">
+                                <input type="checkbox" id="reverbEnabled" onchange="toggleFxSection('reverb')">
+                                <span class="fx-slider-track"></span>
+                            </label>
+                            <span>🏛 Reverb</span>
+                        </div>
+                        <div id="reverbControls" class="fx-disabled">
+                            <div class="fx-row">
+                                <div class="fx-row-header">
+                                    <span class="fx-lbl">Room Size</span>
+                                    <span class="fx-val" id="reverbAmountVal">0.30</span>
+                                </div>
+                                <input type="range" id="reverbAmount" min="0.1" max="1.0" step="0.05" value="0.3"
+                                    oninput="document.getElementById('reverbAmountVal').textContent=parseFloat(this.value).toFixed(2)">
+                                <div class="fx-ticks"><span>0.1 Dry</span><span>0.5 Room</span><span>1.0 Hall</span>
+                                </div>
+                            </div>
+                            <p style="font-size:.78rem;color:#64748b;margin-top:8px;line-height:1.5">
+                                Adds ambient space — sounds like speaking in a room or concert hall.
+                                Combine with Echo for a bigger effect.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="tts-actions">
+            <button class="btn-accent" id="generateBtn" onclick="generateTTS()">▶ Generate Voice</button>
+            <button class="btn-ghost" onclick="resetControls()">↺ Reset Controls</button>
+            <button class="btn-ghost" onclick="clearTTS()">✕ Clear All</button>
+        </div>
+
+        <div class="status-box" id="ttsStatus"></div>
+
+        <!-- Audio result -->
+        <div class="audio-result" id="audioResult" style="display:none">
+            <h4>🎧 Generated Audio</h4>
+            <audio id="audioPlayer" controls></audio>
+            <br>
+            <a id="audioDownloadBtn" class="audio-dl-btn" href="#" download>⬇ Download MP3</a>
+        </div>
+
+    </div>
+
+    <script>
+        const BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://127.0.0.1:8000' : `http://${location.hostname}:8000`;
+
+        function switchTab(name, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + name).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function makeStatus(id) {
+            let iv = null, t0 = null;
+            const el = () => document.getElementById(id);
+            return {
+                start(msg) {
+                    this.stop('', false);
+                    const box = el(); box.innerHTML = '';
+                    const sp = document.createElement('span'); sp.className = 'spinner';
+                    const tx = document.createElement('span'); tx.textContent = ' ' + msg;
+                    const tm = document.createElement('span');
+                    tm.style.cssText = 'margin-left:8px;font-weight:800;color:#64748b';
+                    box.appendChild(sp); box.appendChild(tx); box.appendChild(tm);
+                    t0 = performance.now();
+                    iv = setInterval(() => { tm.textContent = Math.round((performance.now() - t0) / 1000) + ' s'; }, 300);
+                },
+                stop(msg = '', showTime = true) {
+                    clearInterval(iv); iv = null;
+                    const e = Math.round((t0 ? performance.now() - t0 : 0) / 1000); t0 = null;
+                    el().innerHTML = msg + (showTime && e && msg ? ` <span style="color:#94a3b8;font-size:.83rem">(${e}s)</span>` : '');
+                },
+                elapsed() { return t0 ? Math.round((performance.now() - t0) / 1000) : 0; }
+            };
+        }
+        const captionSpin = makeStatus('captionStatus');
+        const ttsSpin = makeStatus('ttsStatus');
+
+        // ═══════════ CAPTION TAB ═══════════
+        let currentUid = null;
+        const videoInput = document.getElementById('videoInput');
+        videoInput.addEventListener('change', () => {
+            if (videoInput.files.length)
+                document.querySelector('label[for="videoInput"]').textContent = '✅ ' + videoInput.files[0].name;
+        });
+
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            if (!videoInput.files.length) return alert('Please choose a video file first.');
+            const [uBtn, sBtn, bBtn] = ['uploadBtn', 'saveSrtBtn', 'burnBtn'].map(id => document.getElementById(id));
+            uBtn.disabled = sBtn.disabled = bBtn.disabled = true;
+            captionSpin.start('Uploading & generating captions…');
+            try {
+                const form = new FormData(); form.append('file', videoInput.files[0]);
+                const res = await fetch(`${BASE}/upload`, { method: 'POST', body: form });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || JSON.stringify(data));
+                captionSpin.stop('✅ Done. Fetching SRT…'); captionSpin.start('Fetching SRT…');
+                const srtData = await (await fetch(`${BASE}/srt/${data.uid}`)).text();
+                captionSpin.stop('✅ Captions ready — edit below, then click "Apply & Generate Video".');
+                currentUid = data.uid;
+                document.getElementById('srtText').value = srtData;
+                document.getElementById('srtAreaWrapper').style.display = 'block';
+                sBtn.disabled = bBtn.disabled = false;
+                const vid = document.getElementById('outputVideo');
+                vid.src = `${BASE}/original/${data.uid}`; vid.style.display = 'block';
+            } catch (err) { captionSpin.stop('❌ ' + (err.message || err), false); }
+            finally { document.getElementById('uploadBtn').disabled = false; }
+        });
+
+        document.getElementById('saveSrtBtn').addEventListener('click', async () => {
+            if (!currentUid) return;
+            document.getElementById('saveSrtBtn').disabled = true;
+            captionSpin.start('Saving SRT…');
+            try {
+                const res = await fetch(`${BASE}/srt/${currentUid}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: document.getElementById('srtText').value })
+                });
+                const data = await res.json(); if (!res.ok) throw new Error(data.detail);
+                captionSpin.stop('✅ SRT saved.');
+            } catch (err) { captionSpin.stop('❌ ' + err.message, false); }
+            finally { document.getElementById('saveSrtBtn').disabled = false; }
+        });
+
+        document.getElementById('burnBtn').addEventListener('click', async () => {
+            if (!currentUid) return;
+            document.getElementById('burnBtn').disabled = true;
+            captionSpin.start('Burning captions into video…');
+            try {
+                // Collect caption style settings
+                const alphaRaw = parseInt(document.getElementById('bgAlpha').value);
+                const styleBody = {
+                    font_size: parseInt(document.getElementById('fontSizeSlider').value),
+                    text_color: document.getElementById('textColor').value,
+                    highlight_color: document.getElementById('highlightColor').value,
+                    outline_color: document.getElementById('outlineColor').value,
+                    bg_color: document.getElementById('bgColor').value,
+                    bg_alpha: alphaRaw,
+                    position: document.getElementById('captionPosition').value,
+                    bold: document.getElementById('captionBold').checked,
+                };
+
+                const res = await fetch(`${BASE}/burn/${currentUid}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(styleBody),
+                });
+                const data = await res.json(); if (!res.ok) throw new Error(data.detail);
+                const secs = captionSpin.elapsed(); captionSpin.stop('');
+                document.getElementById('captionStatus').innerHTML =
+                    `✅ Done! <span style="color:#94a3b8;font-size:.83rem">(${secs}s)</span><br>
+             <a href="${BASE}${data.video_url}" class="dl-link" download target="_blank">⬇ Download Video</a>`;
+                const vid = document.getElementById('outputVideo');
+                vid.src = `${BASE}${data.video_url}`; vid.style.display = 'block';
+            } catch (err) { captionSpin.stop('❌ ' + err.message, false); }
+            finally { document.getElementById('burnBtn').disabled = false; }
+        });
+
+        // ── Caption Style Panel helpers ──────────────────────────────
+
+        function toggleStylePanel() {
+            const body = document.getElementById('stylePanelBody');
+            const header = document.getElementById('stylePanelHeader');
+            const isOpen = header.classList.contains('open');
+            body.style.display = isOpen ? 'none' : 'block';
+            header.classList.toggle('open', !isOpen);
+        }
+
+        function updateStylePreview() {
+            const fontSize = document.getElementById('fontSizeSlider').value;
+            const textColor = document.getElementById('textColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const alphaRaw = parseInt(document.getElementById('bgAlpha').value);
+            const bold = document.getElementById('captionBold').checked;
+
+            // Convert ASS alpha (0=opaque,255=transparent) to CSS opacity (0-1)
+            const opacity = ((255 - alphaRaw) / 255).toFixed(2);
+
+            document.getElementById('fontSizeVal').textContent = fontSize + 'px';
+            document.getElementById('bgAlphaVal').textContent = Math.round((1 - alphaRaw / 255) * 100) + '%';
+
+            const highlightColor = document.getElementById('highlightColor').value;
+            const preview = document.getElementById('captionPreview');
+            preview.style.fontSize = Math.min(parseInt(fontSize), 32) + 'px';
+            preview.style.color = textColor;
+            preview.style.backgroundColor = hexToRgba(bgColor, opacity);
+            preview.style.fontWeight = bold ? '800' : '400';
+            preview.style.textShadow = `1px 1px 3px ${document.getElementById('outlineColor').value}`;
+            // Show karaoke highlight in preview using a gradient
+            preview.innerHTML = `<span style="color:${textColor}">Sample </span>` +
+                `<span style="color:${highlightColor};text-shadow:0 0 8px ${highlightColor}88">Caption</span>` +
+                `<span style="color:${textColor}"> Text — नमस्ते </span>` +
+                `<span style="color:${highlightColor};text-shadow:0 0 8px ${highlightColor}88">दुनिया</span>`;
+        }
+
+        function hexToRgba(hex, opacity) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${opacity})`;
+        }
+
+        // Preset configurations
+        const PRESETS = {
+            default: { fontSize: 56, textColor: '#FFFFFF', highlightColor: '#FFFF00', outlineColor: '#000000', bgColor: '#000000', bgAlpha: 100, position: 'bottom_center', bold: true },
+            yellow: { fontSize: 64, textColor: '#FFFF00', highlightColor: '#FF6600', outlineColor: '#000000', bgColor: '#000000', bgAlpha: 220, position: 'bottom_center', bold: true },
+            white_box: { fontSize: 52, textColor: '#000000', highlightColor: '#0066FF', outlineColor: '#FFFFFF', bgColor: '#FFFFFF', bgAlpha: 30, position: 'bottom_center', bold: false },
+            red: { fontSize: 68, textColor: '#FF3333', highlightColor: '#FFFF00', outlineColor: '#000000', bgColor: '#000000', bgAlpha: 200, position: 'bottom_center', bold: true },
+            top: { fontSize: 52, textColor: '#FFFFFF', highlightColor: '#00FFAA', outlineColor: '#000000', bgColor: '#000000', bgAlpha: 80, position: 'top_center', bold: true },
+        };
+
+        function applyPreset(name) {
+            const p = PRESETS[name];
+            if (!p) return;
+            document.getElementById('fontSizeSlider').value = p.fontSize;
+            document.getElementById('textColor').value = p.textColor;
+            document.getElementById('highlightColor').value = p.highlightColor;
+            document.getElementById('outlineColor').value = p.outlineColor;
+            document.getElementById('bgColor').value = p.bgColor;
+            document.getElementById('bgAlpha').value = p.bgAlpha;
+            document.getElementById('captionPosition').value = p.position;
+            document.getElementById('captionBold').checked = p.bold;
+            updateStylePreview();
+        }
+
+        // Init preview on load
+        updateStylePreview();
+
+        document.getElementById('resetBtn').addEventListener('click', async () => {
+            if (!confirm('Reset and delete all files?')) return;
+            try {
+                const res = await fetch(`${BASE}/reset`, { method: 'DELETE' });
+                alert((await res.json()).message); location.reload();
+            } catch (e) { alert('Reset failed: ' + e.message); }
+        });
+
+        // ═══════════ TTS TAB ═══════════
+
+        // All voices — mirrors TTS_VOICES in main.py
+        const ALL_VOICES = [
+            { voice_id: 'hi_female', lang: 'hi', gender: 'Female', name: 'Swara', sub: 'Hindi · Female · Sweet & Natural ✨ (hi-IN-SwaraNeural)', icon: '👩' },
+            { voice_id: 'hi_male', lang: 'hi', gender: 'Male', name: 'Madhur', sub: 'Hindi · Male · Warm & Clear (hi-IN-MadhurNeural)', icon: '👨' },
+            { voice_id: 'en_us_female', lang: 'en', gender: 'Female', name: 'Jenny', sub: 'US English · Female · Friendly (en-US-JennyNeural)', icon: '👩' },
+            { voice_id: 'en_us_male', lang: 'en', gender: 'Male', name: 'Guy', sub: 'US English · Male · Neutral (en-US-GuyNeural)', icon: '👨' },
+            { voice_id: 'en_gb_female', lang: 'en', gender: 'Female', name: 'Sonia', sub: 'British English · Female · Natural (en-GB-SoniaNeural)', icon: '👩' },
+            { voice_id: 'en_gb_male', lang: 'en', gender: 'Male', name: 'Ryan', sub: 'British English · Male · Clear (en-GB-RyanNeural)', icon: '👨' },
+        ];
+
+        let filterLang = 'hi', filterGender = 'Female', selectedVoice = 'hi_female';
+
+        function setFilter(type, value, btn) {
+            if (type === 'lang') {
+                filterLang = value;
+                document.querySelectorAll('[data-filter="lang"]').forEach(p => p.classList.remove('active'));
+            } else {
+                filterGender = value;
+                document.querySelectorAll('[data-filter="gender"]').forEach(p => p.classList.remove('active'));
+            }
+            btn.classList.add('active');
+            renderVoiceGrid();
+        }
+
+        function renderVoiceGrid() {
+            const grid = document.getElementById('voiceGrid');
+            const filtered = ALL_VOICES.filter(v => v.lang === filterLang && v.gender === filterGender);
+            grid.innerHTML = '';
+            if (!filtered.length) { grid.innerHTML = '<p class="no-voices">No voices for this selection.</p>'; return; }
+            if (!filtered.find(v => v.voice_id === selectedVoice)) selectedVoice = filtered[0].voice_id;
+            filtered.forEach(v => {
+                const card = document.createElement('div');
+                card.className = 'voice-card' + (v.voice_id === selectedVoice ? ' active' : '');
+                card.innerHTML = `
+            <div class="vc-avatar ${v.gender.toLowerCase()}">${v.icon}</div>
+            <div><div class="vc-name">${v.name}</div><div class="vc-sub">${v.sub}</div></div>`;
+                card.addEventListener('click', () => {
+                    selectedVoice = v.voice_id;
+                    document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        // Slider updater
+        function updateCtrl(sliderId, valId, fmt) {
+            document.getElementById(valId).textContent = fmt(document.getElementById(sliderId).value);
+        }
+
+        // Char counter
+        document.getElementById('ttsText').addEventListener('input', function () {
+            const n = this.value.length;
+            const el = document.getElementById('charCount');
+            el.textContent = n + ' / 5000';
+            el.className = 'char-count' + (n > 5000 ? ' over' : n > 4000 ? ' warn' : '');
+        });
+
+        async function generateTTS() {
+            const text = document.getElementById('ttsText').value.trim();
+            if (!text) return alert('Please enter some text first.');
+            if (text.length > 5000) return alert('Text exceeds 5000 characters.');
+            if (!selectedVoice) return alert('Please select a voice.');
+
+            const rateVal = parseInt(document.getElementById('rateSlider').value);
+            const volVal = parseInt(document.getElementById('volSlider').value);
+            const pitchVal = parseInt(document.getElementById('pitchSlider').value);
+
+            const rate = (rateVal >= 0 ? '+' : '') + rateVal + '%';
+            const volume = (volVal >= 0 ? '+' : '') + volVal + '%';
+            const pitch = (pitchVal >= 0 ? '+' : '') + pitchVal + 'Hz';
+
+            // Collect echo / reverb settings
+            const echoEnabled = document.getElementById('echoEnabled').checked;
+            const reverbEnabled = document.getElementById('reverbEnabled').checked;
+            const echoDelay = parseInt(document.getElementById('echoDelay').value);
+            const echoDecay = parseFloat(document.getElementById('echoDecay').value);
+            const echoTaps = parseInt(document.getElementById('echoTaps').value);
+            const reverbAmount = parseFloat(document.getElementById('reverbAmount').value);
+
+            const anyFx = echoEnabled || reverbEnabled;
+
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('audioResult').style.display = 'none';
+            const statusMsg = 'Generating voice' + (anyFx ? ' + applying audio effects' : '') + '…';
+            ttsSpin.start(statusMsg);
+
+            try {
+                const res = await fetch(`${BASE}/tts/synthesize`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text, voice_id: selectedVoice, rate, volume, pitch,
+                        echo_enabled: echoEnabled,
+                        echo_delay: echoDelay,
+                        echo_decay: echoDecay,
+                        echo_taps: echoTaps,
+                        reverb_enabled: reverbEnabled,
+                        reverb_amount: reverbAmount,
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || JSON.stringify(data));
+                ttsSpin.stop('✅ Voice generated!');
+
+                const player = document.getElementById('audioPlayer');
+                player.src = `${BASE}${data.audio_url}`; player.load(); player.play().catch(() => { });
+
+                const dl = document.getElementById('audioDownloadBtn');
+                dl.href = `${BASE}/tts/download/${data.filename}`; dl.download = data.filename;
+
+                document.getElementById('audioResult').style.display = 'block';
+            } catch (err) {
+                ttsSpin.stop('❌ Error: ' + (err.message || err), false);
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        function resetControls() {
+            document.getElementById('rateSlider').value = '0'; document.getElementById('rateVal').textContent = '+0%';
+            document.getElementById('volSlider').value = '50'; document.getElementById('volVal').textContent = '+50%';
+            document.getElementById('pitchSlider').value = '0'; document.getElementById('pitchVal').textContent = '+0Hz';
+            // Reset effects
+            document.getElementById('echoEnabled').checked = false;
+            document.getElementById('reverbEnabled').checked = false;
+            toggleFxSection('echo');
+            toggleFxSection('reverb');
+            document.getElementById('echoDelay').value = '500'; document.getElementById('echoDelayVal').textContent = '500 ms';
+            document.getElementById('echoDecay').value = '0.4'; document.getElementById('echoDecayVal').textContent = '0.40';
+            document.getElementById('echoTaps').value = '1'; document.getElementById('echoTapsVal').textContent = '1×';
+            document.getElementById('reverbAmount').value = '0.3'; document.getElementById('reverbAmountVal').textContent = '0.30';
+        }
+
+        function clearTTS() {
+            document.getElementById('ttsText').value = '';
+            document.getElementById('charCount').textContent = '0 / 5000';
+            document.getElementById('charCount').className = 'char-count';
+            document.getElementById('ttsStatus').innerHTML = '';
+            document.getElementById('audioResult').style.display = 'none';
+            const p = document.getElementById('audioPlayer'); p.pause(); p.src = '';
+            resetControls();
+        }
+
+        // ── Effects panel helpers ─────────────────────────────────────
+
+        function toggleFxPanel() {
+            const body = document.getElementById('fxPanelBody');
+            const header = document.getElementById('fxPanelHeader');
+            const isOpen = header.classList.contains('open');
+            body.style.display = isOpen ? 'none' : 'block';
+            header.classList.toggle('open', !isOpen);
+        }
+
+        function toggleFxSection(type) {
+            if (type === 'echo') {
+                const on = document.getElementById('echoEnabled').checked;
+                const ctrl = document.getElementById('echoControls');
+                const section = document.getElementById('echoSection');
+                ctrl.classList.toggle('fx-disabled', !on);
+                section.classList.toggle('active-fx', on);
+            } else {
+                const on = document.getElementById('reverbEnabled').checked;
+                const ctrl = document.getElementById('reverbControls');
+                const section = document.getElementById('reverbSection');
+                ctrl.classList.toggle('fx-disabled', !on);
+                section.classList.toggle('active-fx', on);
+            }
+        }
+
+        renderVoiceGrid();
+    </script>
+</body>
+
+</html>
