@@ -66,7 +66,14 @@ executor = ThreadPoolExecutor(max_workers=2)
 # -----------------------------------------------------
 # AssemblyAI Configuration
 # -----------------------------------------------------
-aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
+# Compatible with both old SDK (<= 0.26) and new SDK (>= 0.27).
+# New SDK auto-reads ASSEMBLYAI_API_KEY from environment.
+# Old SDK requires explicit assignment to aai.settings.api_key.
+_AAI_KEY = os.getenv("ASSEMBLYAI_API_KEY", "")
+try:
+    aai.settings.api_key = _AAI_KEY
+except Exception:
+    pass   # newer SDK reads the env var automatically
 logger.info("Using AssemblyAI for transcription (Hindi mode).")
 
 # =====================================================
@@ -608,10 +615,21 @@ def transcribe_with_assemblyai(audio_path: str):
     import json as _json
     try:
         logger.info("Starting AssemblyAI transcription...")
-        config = aai.TranscriptionConfig(
-            speech_model=aai.SpeechModel.best,
-            language_code="hi"
-        )
+        # SpeechModel.best was introduced in newer SDK versions.
+        # Fall back gracefully if the attribute doesn't exist.
+        try:
+            _speech_model = aai.SpeechModel.best
+        except AttributeError:
+            try:
+                _speech_model = aai.SpeechModel.universal
+            except AttributeError:
+                _speech_model = None
+
+        _cfg_kwargs = {"language_code": "hi"}
+        if _speech_model is not None:
+            _cfg_kwargs["speech_model"] = _speech_model
+
+        config = aai.TranscriptionConfig(**_cfg_kwargs)
         transcriber = aai.Transcriber(config=config)
         transcript  = transcriber.transcribe(audio_path)
         if transcript.status == "error":
@@ -623,7 +641,7 @@ def transcribe_with_assemblyai(audio_path: str):
         except AttributeError:
             logger.warning("Falling back to REST API subtitles endpoint.")
             url     = f"https://api.assemblyai.com/v2/transcripts/{transcript.id}/subtitles"
-            headers = {"authorization": aai.settings.api_key}
+            headers = {"authorization": _AAI_KEY or getattr(aai.settings, "api_key", _AAI_KEY)}
             r       = requests.get(url, headers=headers, params={"subtitle_format": "srt"})
             r.raise_for_status()
             srt_text = r.text
