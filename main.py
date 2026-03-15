@@ -407,6 +407,10 @@ def convert_srt_to_ass_karaoke(
     bg_alpha: int       = 100,          # 0=opaque, 255=transparent
     position: str       = "bottom_center",
     bold: bool          = True,
+    margin_top: int     = 30,           # distance from top edge (px) — used for top positions
+    margin_bottom: int  = 30,           # distance from bottom edge (px) — used for bottom positions
+    margin_l: int       = 30,           # left margin (px)
+    margin_r: int       = 30,           # right margin (px)
     words_json: list    = None,         # word-level timestamps from AssemblyAI
 ):
     """
@@ -440,6 +444,11 @@ def convert_srt_to_ass_karaoke(
         alignment     = POSITION_MAP.get(position, 2)
         bold_flag     = 1 if bold else 0
 
+        # Pick margin_v based on position:
+        # top positions (7,8,9) use margin_top; everything else uses margin_bottom
+        _top_alignments = {7, 8, 9}
+        margin_v = margin_top if alignment in _top_alignments else margin_bottom
+
         # SecondaryColour in ASS is the karaoke fill colour (the highlight)
         ass_header = f"""[Script Info]
 ScriptType: v4.00+
@@ -451,7 +460,7 @@ Timer: 100.0000
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,{fontname},{font_size},{primary_col},{secondary_col},{outline_col},{back_col},{bold_flag},0,0,0,100,100,0,0,1,3,2,{alignment},30,30,30,1
+Style: Default,{fontname},{font_size},{primary_col},{secondary_col},{outline_col},{back_col},{bold_flag},0,0,0,100,100,0,0,1,3,2,{alignment},{margin_l},{margin_r},{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -554,6 +563,10 @@ def burn_subtitles(
     bg_alpha: int        = 100,
     position: str        = "bottom_center",
     bold: bool           = True,
+    margin_top: int      = 30,
+    margin_bottom: int   = 30,
+    margin_l: int        = 30,
+    margin_r: int        = 30,
     words_json: list     = None,
 ):
     logger.info("🔥Burning subtitles to video...")
@@ -568,6 +581,10 @@ def burn_subtitles(
         bg_alpha=bg_alpha,
         position=position,
         bold=bold,
+        margin_top=margin_top,
+        margin_bottom=margin_bottom,
+        margin_l=margin_l,
+        margin_r=margin_r,
         words_json=words_json,
     ):
         raise RuntimeError("🔴Failed to convert SRT to ASS")
@@ -784,6 +801,10 @@ class BurnRequest(BaseModel):
     bg_alpha:        int   = 100        # 0=opaque, 255=transparent
     position:        str   = "bottom_center"
     bold:            bool  = True
+    margin_top:      int   = 30         # distance from top edge in px
+    margin_bottom:   int   = 30         # distance from bottom edge in px
+    margin_l:        int   = 30         # left margin px
+    margin_r:        int   = 30         # right margin px
 
 
 @app.post("/burn/{uid}")
@@ -814,6 +835,10 @@ async def burn_endpoint(uid: str, req: BurnRequest = BurnRequest()):
         bg_alpha=req.bg_alpha,
         position=req.position,
         bold=req.bold,
+        margin_top=req.margin_top,
+        margin_bottom=req.margin_bottom,
+        margin_l=req.margin_l,
+        margin_r=req.margin_r,
         words_json=words_json,
     )
     if not ok:

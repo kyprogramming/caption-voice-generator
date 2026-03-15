@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" type="image/svg+xml">
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Caption & Voice Studio</title>
     <style>
@@ -1234,6 +1235,48 @@
                         </div>
                     </div>
 
+                    <!-- Top Margin -->
+                    <div class="style-item">
+                        <label>⬆ Top Margin</label>
+                        <div class="range-row">
+                            <input type="range" id="marginTop" min="0" max="200" step="5" value="30"
+                                oninput="document.getElementById('marginTopVal').textContent=this.value+'px'; updateStylePreview()">
+                            <span class="range-val" id="marginTopVal">30px</span>
+                        </div>
+                        <span style="font-size:.7rem;color:#94a3b8">Used when position is Top</span>
+                    </div>
+
+                    <!-- Bottom Margin -->
+                    <div class="style-item">
+                        <label>⬇ Bottom Margin</label>
+                        <div class="range-row">
+                            <input type="range" id="marginBottom" min="0" max="200" step="5" value="30"
+                                oninput="document.getElementById('marginBottomVal').textContent=this.value+'px'; updateStylePreview()">
+                            <span class="range-val" id="marginBottomVal">30px</span>
+                        </div>
+                        <span style="font-size:.7rem;color:#94a3b8">Used when position is Bottom/Middle</span>
+                    </div>
+
+                    <!-- Left Margin -->
+                    <div class="style-item">
+                        <label>← Left Margin</label>
+                        <div class="range-row">
+                            <input type="range" id="marginL" min="0" max="200" step="5" value="30"
+                                oninput="document.getElementById('marginLVal').textContent=this.value+'px'">
+                            <span class="range-val" id="marginLVal">30px</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Margin -->
+                    <div class="style-item">
+                        <label>→ Right Margin</label>
+                        <div class="range-row">
+                            <input type="range" id="marginR" min="0" max="200" step="5" value="30"
+                                oninput="document.getElementById('marginRVal').textContent=this.value+'px'">
+                            <span class="range-val" id="marginRVal">30px</span>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Live preview -->
@@ -1275,6 +1318,15 @@
                     Microsoft Neural · Free
                 </span>
             </h2>
+            <p>Natural neural voices for Hindi &amp; English — using Microsoft Edge TTS. Automatically falls back to
+                Google TTS if Microsoft is unavailable.</p>
+        </div>
+
+        <div class="info-banner">
+            ✅ <strong>Engine:</strong> Microsoft Edge Neural TTS (hi-IN-SwaraNeural, hi-IN-MadhurNeural,
+            en-US-JennyNeural, en-US-GuyNeural, en-GB-SoniaNeural, en-GB-RyanNeural)<br>
+            🔄 <strong>Fallback:</strong> If Microsoft returns a 403 error, Google TTS is used automatically — you
+            always get audio.
         </div>
 
         <!-- Language + Gender filter pills -->
@@ -1640,6 +1692,10 @@
                     bg_alpha: alphaRaw,
                     position: document.getElementById('captionPosition').value,
                     bold: document.getElementById('captionBold').checked,
+                    margin_top: parseInt(document.getElementById('marginTop').value),
+                    margin_bottom: parseInt(document.getElementById('marginBottom').value),
+                    margin_l: parseInt(document.getElementById('marginL').value),
+                    margin_r: parseInt(document.getElementById('marginR').value),
                 };
 
                 const res = await fetch(`${BASE}/burn/${currentUid}`, {
@@ -1682,12 +1738,20 @@
             document.getElementById('bgAlphaVal').textContent = Math.round((1 - alphaRaw / 255) * 100) + '%';
 
             const highlightColor = document.getElementById('highlightColor').value;
+            const marginTop = document.getElementById('marginTop').value;
+            const marginBottom = document.getElementById('marginBottom').value;
+            const marginL = document.getElementById('marginL').value;
+            const marginR = document.getElementById('marginR').value;
+            // pick the relevant margin for the live preview based on position
+            const pos = document.getElementById('captionPosition').value;
+            const marginV = pos.startsWith('top') ? marginTop : marginBottom;
             const preview = document.getElementById('captionPreview');
             preview.style.fontSize = Math.min(parseInt(fontSize), 32) + 'px';
             preview.style.color = textColor;
             preview.style.backgroundColor = hexToRgba(bgColor, opacity);
             preview.style.fontWeight = bold ? '800' : '400';
             preview.style.textShadow = `1px 1px 3px ${document.getElementById('outlineColor').value}`;
+            preview.style.padding = `${Math.min(marginV, 20)}px ${Math.min(marginR, 30)}px ${Math.min(marginV, 20)}px ${Math.min(marginL, 30)}px`;
             // Show karaoke highlight in preview using a gradient
             preview.innerHTML = `<span style="color:${textColor}">Sample </span>` +
                 `<span style="color:${highlightColor};text-shadow:0 0 8px ${highlightColor}88">Caption</span>` +
@@ -1722,6 +1786,10 @@
             document.getElementById('bgAlpha').value = p.bgAlpha;
             document.getElementById('captionPosition').value = p.position;
             document.getElementById('captionBold').checked = p.bold;
+            document.getElementById('marginTop').value = p.marginTop || 30; document.getElementById('marginTopVal').textContent = (p.marginTop || 30) + 'px';
+            document.getElementById('marginBottom').value = p.marginBottom || 30; document.getElementById('marginBottomVal').textContent = (p.marginBottom || 30) + 'px';
+            document.getElementById('marginL').value = p.marginL || 30; document.getElementById('marginLVal').textContent = (p.marginL || 30) + 'px';
+            document.getElementById('marginR').value = p.marginR || 30; document.getElementById('marginRVal').textContent = (p.marginR || 30) + 'px';
             updateStylePreview();
         }
 
