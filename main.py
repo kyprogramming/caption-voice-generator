@@ -66,14 +66,10 @@ executor = ThreadPoolExecutor(max_workers=2)
 # -----------------------------------------------------
 # AssemblyAI Configuration
 # -----------------------------------------------------
-# Compatible with both old SDK (<= 0.26) and new SDK (>= 0.27).
-# New SDK auto-reads ASSEMBLYAI_API_KEY from environment.
-# Old SDK requires explicit assignment to aai.settings.api_key.
+# Store the key in a plain variable.
+# We pass it directly to the Transcriber — never touch
+# aai.settings.api_key which changed across SDK versions.
 _AAI_KEY = os.getenv("ASSEMBLYAI_API_KEY", "")
-try:
-    aai.settings.api_key = _AAI_KEY
-except Exception:
-    pass   # newer SDK reads the env var automatically
 logger.info("Using AssemblyAI for transcription (Hindi mode).")
 
 # =====================================================
@@ -630,7 +626,17 @@ def transcribe_with_assemblyai(audio_path: str):
             _cfg_kwargs["speech_model"] = _speech_model
 
         config = aai.TranscriptionConfig(**_cfg_kwargs)
-        transcriber = aai.Transcriber(config=config)
+
+        # Pass api_key directly — works on ALL SDK versions.
+        # Old SDK: Transcriber(api_key=...) sets it internally.
+        # New SDK: same signature, no aai.settings needed.
+        try:
+            transcriber = aai.Transcriber(config=config, api_key=_AAI_KEY)
+        except TypeError:
+            # Very old SDK versions don't accept api_key kwarg — fall back
+            aai.settings.api_key = _AAI_KEY  # noqa
+            transcriber = aai.Transcriber(config=config)
+
         transcript  = transcriber.transcribe(audio_path)
         if transcript.status == "error":
             raise RuntimeError(f"🔴Transcription failed: {transcript.error}")
@@ -641,7 +647,7 @@ def transcribe_with_assemblyai(audio_path: str):
         except AttributeError:
             logger.warning("Falling back to REST API subtitles endpoint.")
             url     = f"https://api.assemblyai.com/v2/transcripts/{transcript.id}/subtitles"
-            headers = {"authorization": _AAI_KEY or getattr(aai.settings, "api_key", _AAI_KEY)}
+            headers = {"authorization": _AAI_KEY}
             r       = requests.get(url, headers=headers, params={"subtitle_format": "srt"})
             r.raise_for_status()
             srt_text = r.text
@@ -959,6 +965,22 @@ async def download_video(filename: str, background_tasks: BackgroundTasks):
         return JSONResponse({"error": "File not found"}, status_code=404)
     background_tasks.add_task(os.remove, file_path)
     return FileResponse(file_path, media_type="video/mp4", filename=filename)
+
+
+@app.api_route("/favicon.ico", methods=["GET", "HEAD"])
+async def favicon():
+    """Return an inline SVG favicon — no file needed, stops 404 log noise."""
+    from fastapi.responses import Response as _Resp
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        '<text y="26" font-size="28">🎬</text>'
+        '</svg>'
+    )
+    return _Resp(
+        content=svg,
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"}
+    )
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])
